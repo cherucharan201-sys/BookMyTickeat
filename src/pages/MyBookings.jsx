@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../context/AuthContext.jsx'
+import API_URL from '../config/api.js'
 
 const formatDateTimeToGoogle = (date, time) => {
   const [year, month, day] = date.split('-')
@@ -64,7 +66,7 @@ const MyBookings = () => {
 
   const markAsPaid = async (bookingId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}/payment`, {
+      const res = await fetch(`${API_URL}/api/bookings/${bookingId}/payment`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentStatus: 'paid' })
@@ -85,7 +87,7 @@ const MyBookings = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}`, {
+      const res = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
         method: 'DELETE'
       })
       if (res.ok) {
@@ -108,7 +110,7 @@ const MyBookings = () => {
 
     const fetchBookings = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/bookings')
+        const res = await fetch(`${API_URL}/api/bookings`)
         const data = await res.json()
         setBookings(data)
       } catch (error) {
@@ -119,7 +121,7 @@ const MyBookings = () => {
     }
 
     const subscribeToBookings = () => {
-      eventSource = new EventSource('http://localhost:5000/api/bookings/stream')
+      eventSource = new EventSource(`${API_URL}/api/bookings/stream`)
       eventSource.onmessage = (event) => {
         try {
           const payload = JSON.parse(event.data)

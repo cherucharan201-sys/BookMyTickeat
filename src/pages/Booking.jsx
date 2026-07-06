@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext.jsx'
+import API_URL from '../config/api.js'
 
 const formatDateTimeToGoogle = (date, time) => {
   const [year, month, day] = date.split('-')
@@ -97,7 +99,7 @@ const Booking = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/bookings', {
+      const res = await fetch(`${API_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -139,7 +141,7 @@ const Booking = () => {
     if (!bookingId) return
 
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${bookingId}/payment`, {
+      const res = await fetch(`${API_URL}/api/bookings/${bookingId}/payment`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentStatus: 'paid', paymentMethod: formData.paymentMethod })
@@ -176,7 +178,7 @@ const Booking = () => {
   useEffect(() => {
     if (!bookingId) return
 
-    const eventSource = new EventSource('http://localhost:5000/api/bookings/stream')
+    const eventSource = new EventSource(`${API_URL}/api/bookings/stream`)
 
     eventSource.onmessage = (event) => {
       try {
