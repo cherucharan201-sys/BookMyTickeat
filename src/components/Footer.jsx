@@ -1,25 +1,17 @@
 import { Link } from 'react-router-dom'
 
-const Footer = () => {
-  return (
-    <footer className="footer">
-      <div>
-        <h3>DarshanHome</h3>
-        <p>Book divine visits with ease, safety, and comfort.</p>
-      </div>
-      <div>
-        <h4>Quick Links</h4>
-        <Link to="/temples">Popular Temples</Link>
-        <Link to="/about">About Us</Link>
-        <Link to="/contact">Contact</Link>
-      </div>
-      <div>
-        <h4>Support</h4>
-        <p>cherucharan201@gmail.com</p>
-        <p>+93 90767012</p>
-      </div>
-    </footer>
-  )
-}
+const Footer = () => (
+  <footer className="footer">
+    <div className="content-width footer-inner">
+      <Link to="/" className="brand footer-brand">BookMyTickets</Link>
+      <p>Pick a movie. Pick your seats. Make a night of it.</p>
+      <nav className="footer-links" aria-label="Footer navigation">
+        <Link to="/movies">Movies</Link>
+        <Link to="/theaters">Theaters</Link>
+        <Link to="/bookings">My tickets</Link>
+      </nav>
+    </div>
+  </footer>
+)
 
 export default Footer

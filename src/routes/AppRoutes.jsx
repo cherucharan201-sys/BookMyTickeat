@@ -1,30 +1,25 @@
-import { Routes, Route } from 'react-router-dom'
-import Home from '../pages/Home'
-import Login from '../pages/Login'
-import Register from '../pages/Register'
-import Temples from '../pages/Temples'
-import TempleDetails from '../pages/TempleDetails'
-import Booking from '../pages/Booking'
-import MyBookings from '../pages/MyBookings'
-import Profile from '../pages/Profile'
-import Contact from '../pages/Contact'
-import About from '../pages/About'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import Home from '../pages/Home.jsx'
+import Movies from '../pages/Movies.jsx'
+import MovieDetails from '../pages/MovieDetails.jsx'
+import Booking from '../pages/Booking.jsx'
+import MyBookings from '../pages/MyBookings.jsx'
+import Theaters from '../pages/Theaters.jsx'
+import Login from '../pages/Login.jsx'
+import Register from '../pages/Register.jsx'
 
-const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/temples" element={<Temples />} />
-      <Route path="/temple/:name" element={<TempleDetails />} />
-      <Route path="/booking" element={<Booking />} />
-      <Route path="/bookings" element={<MyBookings />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/about" element={<About />} />
-    </Routes>
-  )
-}
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+    <Route path="/movies" element={<Movies />} />
+    <Route path="/theaters" element={<Theaters />} />
+    <Route path="/movie/:id" element={<MovieDetails />} />
+    <Route path="/booking/:id" element={<Booking />} />
+    <Route path="/bookings" element={<MyBookings />} />
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+)
 
 export default AppRoutes

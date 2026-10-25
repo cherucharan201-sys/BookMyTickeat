@@ -1,202 +1,57 @@
-# 🛕 DarshanHome - Online Temple Darshan Booking System
+# BookMyTickets
 
-Book your divine visits with ease, safety, and comfort. Reserve temple slots online and enjoy a smooth spiritual journey without standing in long queues.
+BookMyTickets is a responsive movie-ticket booking demo built with React and Vite. Browse Indian cinema releases from 2026 across several language industries, choose a cinema and showtime, select seats, and view saved tickets.
 
-## ✨ Features
+## Features
 
-- 🔐 **User Authentication** - Secure registration and login
-- 🛕 **Temple Browsing** - Explore sacred destinations
-- 📅 **Smart Booking** - Choose preferred dates and time slots
-- 💳 **Payment Integration** - Secure payment processing
-- 📧 **Email Notifications** - Automatic confirmation emails
-- 📱 **Responsive Design** - Works on all devices
-- ⚡ **Real-time Updates** - Live booking status with Server-Sent Events
+- Search movies by title, genre, language, or film industry and filter by language
+- View movie details and choose a date, cinema, and showtime
+- Find nearby theaters using device location (with permission) or a city/area search
+- Browse listed cinemas near Tirupati by default or search another location
+- Open PVR INOX to check live showtimes, seats, and complete real bookings there
+- Select seats from a visual seating chart with tiered prices
+- Save demo tickets to MongoDB and review them under **My tickets**
+- Create an account with email, phone number, and password, then log in with either email or phone
+- Send an email alert to the registered email address after a successful login (requires SMTP configuration for real delivery)
+- Responsive layouts for desktop and mobile
 
-## 🚀 Quick Start
+> **Booking:** The PVR INOX link opens its official booking site where users can check current availability and complete bookings. This app does not connect to PVR's booking API or confirm tickets itself. Its 2026 movie catalog and OpenStreetMap venue list are samples/map data; saved demo tickets are stored in MongoDB but do not reserve cinema seats or collect payment.
 
-### Local Development (5 minutes)
+## Run locally
 
 ```bash
-# Install dependencies
 npm install
-
-# Start backend server (Terminal 1)
-npm run dev:server
-
-# Start frontend dev server (Terminal 2)
 npm run dev
-
-# Open http://localhost:5173 in your browser
 ```
 
-### Using Docker (Full Stack)
+Open the local URL printed by Vite (usually `http://localhost:5173`).
+
+The login and registration API also needs MongoDB and the backend running:
 
 ```bash
-# Build and start all services
-docker-compose up -d
-
-# Frontend: http://localhost:5173
-# Backend:  http://localhost:5000
-# Database: MongoDB (internal)
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+npm run dev:server
 ```
 
-## 📦 Project Structure
+The server connects to `mongodb://127.0.0.1:27017/darshan` by default; set `MONGO_URI` to use another MongoDB connection. Passwords for new registrations are stored as scrypt hashes. Existing accounts with plain-text passwords are upgraded to hashes after a successful login.
 
-```
-├── src/
-│   ├── pages/          # Page components (Home, Register, Login, etc.)
-│   ├── components/     # Reusable UI components
-│   ├── context/        # React Context for auth state
-│   ├── config/         # API configuration
-│   └── App.jsx         # Main app component
-├── server.js           # Express backend server
-├── vite.config.js      # Vite configuration
-├── vercel.json         # Vercel deployment config
-├── Dockerfile          # Docker image for backend
-└── docker-compose.yml  # Multi-container setup
-```
+Users must be logged in to save and view tickets. The API stores demo tickets and revocable seven-day sessions in MongoDB. Existing tickets saved in browser storage before this update are not migrated automatically.
 
-## 🛠 Tech Stack
+Login email alerts use the configured email transport (`EMAIL_SERVICE`, `EMAIL_USER`, `EMAIL_PASS`, or `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`). Without SMTP settings, development uses an Ethereal preview and does not deliver email to the account. SMS login alerts are not configured; they require an SMS provider account and credentials.
 
-### Frontend
-- React 19 + Vite
-- React Router for navigation
-- Framer Motion for animations
-- React Icons for UI icons
-
-### Backend
-- Express.js for API
-- MongoDB with Mongoose ODM
-- Nodemailer for email notifications
-- CORS for cross-origin requests
-
-### Deployment
-- **Frontend**: Vercel
-- **Backend**: Railway / Render / Heroku
-- **Database**: MongoDB Atlas
-- **Email**: Gmail with App Passwords
-
-## 📚 Documentation
-
-### For Developers
-- **Local Setup**: See this README
-- **API Documentation**: See [server.js](server.js)
-- **Component Structure**: See `src/components/` directory
-
-### For Deployment
-- **Quick Start**: See [QUICK_START.md](QUICK_START.md) - Fastest path to go live
-- **Detailed Guide**: See [DEPLOYMENT.md](DEPLOYMENT.md) - Complete instructions for all platforms
-- **Pre-Publish Checklist**: See [PUBLISH_CHECKLIST.md](PUBLISH_CHECKLIST.md) - Verification steps
-
-## 🚀 Publishing Your App
-
-### Quickest Path (15 minutes)
-1. Read [QUICK_START.md](QUICK_START.md)
-2. Deploy frontend to Vercel (5 min)
-3. Deploy backend to Railway (5 min)
-4. Setup MongoDB Atlas (3 min)
-5. Configure Gmail for emails (2 min)
-
-### Complete Guide
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed step-by-step instructions for each platform.
-
-### Pre-Deployment Verification
-Use [PUBLISH_CHECKLIST.md](PUBLISH_CHECKLIST.md) to verify everything before going live.
-
-## 🔧 Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Frontend
-VITE_API_URL=http://localhost:5000
-
-# Backend
-MONGODB_URI=mongodb://localhost:27017/darshan
-EMAIL_SERVICE=gmail
-EMAIL_USER=your.email@gmail.com
-EMAIL_PASS=your-app-password
-EMAIL_FROM=noreply@darshanhome.com
-PORT=5000
-NODE_ENV=development
-```
-
-See [.env.example](.env.example) for all options.
-
-## 📋 Available Scripts
+## Validation
 
 ```bash
-# Development
-npm run dev              # Start frontend dev server
-npm run dev:server       # Start backend server
-npm run build            # Build for production
-npm run preview          # Preview production build
-npm run lint             # Run code linter
-
-# Docker
-docker-compose up -d     # Start all services
-docker-compose down      # Stop all services
-docker-compose logs -f   # View logs
+npm run build
+npm run lint
 ```
 
-## 🔐 Security
+## Project structure
 
-- Environment variables for sensitive data
-- CORS configured for production domains
-- Input validation on all API endpoints
-- Secure password handling with bcrypt (can be added)
-- HTTPS enforced in production
-
-## 🐛 Common Issues
-
-| Issue | Solution |
-|-------|----------|
-| "Cannot connect to server" | Make sure `npm run dev:server` is running |
-| "Registration service unavailable" | Check `VITE_API_URL` environment variable |
-| "Email not sending" | Verify Gmail App Password and enable 2FA on Gmail |
-| "Database connection error" | Check MongoDB connection string and IP whitelist |
-
-## 📧 Email Configuration
-
-### Using Gmail
-1. Enable 2-Factor Authentication on Gmail
-2. Generate App Password: https://myaccount.google.com/apppasswords
-3. Use the 16-character password as `EMAIL_PASS`
-
-### Using Other Providers
-Modify `server.js` transporter configuration to use your email service.
-
-## 🤝 Contributing
-
-Pull requests are welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## 🙏 Support
-
-For issues, questions, or suggestions:
-- Check [DEPLOYMENT.md](DEPLOYMENT.md) for deployment help
-- Review [QUICK_START.md](QUICK_START.md) for quick setup
-- Check existing issues in the repository
-
-## 📞 Contact
-
-- Email: cherucharan201@gmail.com
-- Phone: +93 90767012
-
----
-
-**Ready to go live?** Start with [QUICK_START.md](QUICK_START.md)! 🚀
+```text
+src/
+  components/   Shared navigation, footer, and movie cards
+  data/         Sample movie catalog and date helpers
+  services/     Theater lookup and authenticated movie-ticket API
+  pages/        Home, movie catalog, details, seat booking, and saved tickets
+  routes/       Application routes
+```

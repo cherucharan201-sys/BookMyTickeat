@@ -1,218 +1,99 @@
 import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { FaTicketAlt } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext.jsx'
-import API_URL from '../config/api.js'
+import { getMovieTickets } from '../services/movieTickets.js'
 
-const formatDateTimeToGoogle = (date, time) => {
-  const [year, month, day] = date.split('-')
-  const [hour, minute] = time.split(':')
-  const dt = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute)))
-  return dt.toISOString().replace(/[-:]|\.000Z/g, '') + 'Z'
-}
-
-const createGoogleCalendarUrl = (booking) => {
-  const date = booking.reminderDate || booking.date
-  const time = booking.reminderTime || '09:00'
-  if (!date) return ''
-
-  const start = formatDateTimeToGoogle(date, time)
-  const [hour, minute] = time.split(':')
-  const endHour = String((Number(hour) + 1) % 24).padStart(2, '0')
-  const end = formatDateTimeToGoogle(date, `${endHour}:${minute}`)
-  const title = `Darshan Booking - ${booking.templeName}`
-  const details = booking.reminderNote || `Darshan booking for ${booking.templeName}`
-  const location = booking.templeName
-
-  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}&trp=false`
-}
-
-const createCalendarFile = (booking) => {
-  const title = `Darshan Booking - ${booking.templeName}`
-  const reminderDate = booking.reminderDate || booking.date
-  const reminderTime = booking.reminderTime || '09:00'
-  const start = `${reminderDate.replace(/-/g, '')}T${reminderTime.replace(':', '')}00`
-  const end = `${reminderDate.replace(/-/g, '')}T${String(Number(reminderTime.split(':')[0]) + 1).padStart(2, '0')}${reminderTime.split(':')[1]}00`
-  const description = booking.reminderNote || `Darshan booking for ${booking.templeName}`
-
-  const content = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//DarshanHome//Reminder//EN
-CALSCALE:GREGORIAN
-BEGIN:VEVENT
-UID:${booking._id || Date.now()}@darshanhome
-DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}
-DTSTART:${start}
-DTEND:${end}
-SUMMARY:${title}
-DESCRIPTION:${description}
-END:VEVENT
-END:VCALENDAR`
-
-  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${booking.templeName.replace(/\s+/g, '-') || 'darshan'}-reminder.ics`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
+const formatDate = (date) => new Date(`${date}T12:00:00`).toLocaleDateString('en-IN', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric'
+})
 
 const MyBookings = () => {
-  const [bookings, setBookings] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState('')
-  const [messageType, setMessageType] = useState('success')
+  const [tickets, setTickets] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const { isAuthenticated, token } = useAuth()
+  const { state } = useLocation()
+  const loginNotification = state?.loginNotification
 
-  const markAsPaid = async (bookingId) => {
-    try {
-      const res = await fetch(`${API_URL}/api/bookings/${bookingId}/payment`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentStatus: 'paid' })
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setBookings((prev) => prev.map((item) => item._id === bookingId ? data : item))
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  const cancelBooking = async (bookingId) => {
-    const confirmed = window.confirm('Are you sure you want to cancel this booking?')
-    if (!confirmed) {
+  useEffect(() => {
+    if (!token) {
+      setTickets([])
+      setError('')
+      setIsLoading(false)
       return
     }
 
-    try {
-      const res = await fetch(`${API_URL}/api/bookings/${bookingId}`, {
-        method: 'DELETE'
+    let isCurrent = true
+    setIsLoading(true)
+    setTickets([])
+    setError('')
+    getMovieTickets(token)
+      .then((savedTickets) => {
+        if (isCurrent) setTickets(savedTickets)
       })
-      if (res.ok) {
-        setBookings((prev) => prev.filter((item) => item._id !== bookingId))
-        setMessageType('success')
-        setMessage('Booking cancelled successfully.')
-      } else {
-        setMessageType('error')
-        setMessage('Failed to cancel booking.')
-      }
-    } catch (error) {
-      console.error(error)
-      setMessageType('error')
-      setMessage('Cancellation request failed.')
-    }
-  }
+      .catch((loadError) => {
+        console.error('Could not load database movie tickets:', loadError)
+        if (isCurrent) setError(loadError.message || 'Could not load your tickets.')
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false)
+      })
 
-  useEffect(() => {
-    let eventSource
-
-    const fetchBookings = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/bookings`)
-        const data = await res.json()
-        setBookings(data)
-      } catch (error) {
-        setBookings([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    const subscribeToBookings = () => {
-      eventSource = new EventSource(`${API_URL}/api/bookings/stream`)
-      eventSource.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data)
-          if (payload.type === 'bookings') {
-            setBookings(payload.bookings)
-          }
-        } catch (err) {
-          console.error('Failed to parse SSE payload', err)
-        }
-      }
-      eventSource.onerror = () => {
-        eventSource.close()
-      }
-    }
-
-    fetchBookings()
-    subscribeToBookings()
-
-    return () => {
-      if (eventSource) {
-        eventSource.close()
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!message) return
-    const timer = setTimeout(() => setMessage(''), 3000)
-    return () => clearTimeout(timer)
-  }, [message])
+    return () => { isCurrent = false }
+  }, [token])
 
   return (
-    <section className="page-card">
-      <p className="eyebrow">My Bookings</p>
-      <h2>Your upcoming darshans</h2>
-      {message && (
-        <div className={`toast ${messageType}`}>
-          {message}
+    <main className="content-width">
+      {loginNotification && (
+        <p className={`toast ${loginNotification.delivered ? 'success' : 'error'}`} role="status" aria-live="polite">
+          {loginNotification.message}
+        </p>
+      )}
+      <header className="page-header">
+        <p className="eyebrow">Saved to your account</p>
+        <h1>My tickets</h1>
+        <p>Your saved demo tickets are available from your account on any device.</p>
+      </header>
+      {error && <p className="message-error" role="alert">{error}</p>}
+      {isLoading ? (
+        <p className="location-result" role="status">Loading your tickets...</p>
+      ) : !isAuthenticated ? (
+        <div className="empty-state" style={{ marginBottom: 64 }}>
+          <h2>Log in to view your tickets</h2>
+          <p>Your saved tickets are associated with your account.</p>
+          <Link className="btn btn-primary" to="/login"><FaTicketAlt /> Log in</Link>
+        </div>
+      ) : error ? null : tickets.length ? (
+        <div className="tickets-list">
+          {tickets.map((ticket) => (
+            <article className="ticket-card" key={ticket.id}>
+              <img src={ticket.image} alt={`${ticket.title} poster`} />
+              <div className="ticket-info">
+                <h2>{ticket.title}</h2>
+                <p>{ticket.cinema}{ticket.address ? ` · ${ticket.address}` : ''}</p>
+                <p>{formatDate(ticket.date)} · {ticket.time}</p>
+                <p>Seats: {ticket.seats.join(', ')} · ₹{ticket.total}</p>
+              </div>
+              <div className="ticket-code">
+                Saved ticket code
+                <strong>{ticket.id || ticket.ticketCode}</strong>
+                <span>Not valid for cinema entry</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state" style={{ marginBottom: 64 }}>
+          <h2>No tickets yet</h2>
+          <p>Save a demo ticket to see it here.</p>
+          <Link className="btn btn-primary" to="/movies"><FaTicketAlt /> Browse movies</Link>
         </div>
       )}
-      {loading ? (
-        <p>Loading bookings...</p>
-      ) : bookings.length === 0 ? (
-        <p>No bookings yet.</p>
-      ) : (
-        <>
-          {message && <p className="booking-item" style={{ marginBottom: 16 }}>{message}</p>}
-          <div className="booking-list">
-            {bookings.map((booking) => (
-              <div key={booking._id} className="booking-item">
-                <h3>{booking.templeName}</h3>
-                <p>{booking.date} • {booking.slot}</p>
-                <p>Booked by {booking.name} ({booking.email})</p>
-                <p>Ticket: {booking.ticketType} • Amount: {booking.amount > 0 ? `₹${booking.amount}` : 'Free'}</p>
-                <p>Payment: {booking.paymentStatus === 'paid' ? 'Paid and confirmed' : 'Pending payment'}</p>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                  {booking.paymentStatus !== 'paid' && (
-                    <button className="btn btn-light" type="button" onClick={() => markAsPaid(booking._id)}>
-                      Complete Payment
-                    </button>
-                  )}
-                  <button className="btn btn-danger" type="button" onClick={() => cancelBooking(booking._id)}>
-                    Cancel Booking
-                  </button>
-                </div>
-                {booking.reminderEnabled ? (
-                  <>
-                    <p>Reminder: {booking.reminderDate || booking.date} at {booking.reminderTime || '09:00'}</p>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                      <button className="btn btn-light" type="button" onClick={() => createCalendarFile(booking)}>
-                        Add to Calendar
-                      </button>
-                      <a
-                        className="btn btn-light"
-                        href={createGoogleCalendarUrl(booking)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Add to Google Calendar
-                      </a>
-                    </div>
-                  </>
-                ) : (
-                  <p>Reminder not set</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </section>
+    </main>
   )
 }
 

@@ -1,49 +1,43 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { FaOm, FaUserCircle } from 'react-icons/fa'
+import { FaFilm, FaTicketAlt } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext.jsx'
 
 const Navbar = () => {
-  const { user, logout, isAuthenticated } = useAuth()
   const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
+  const { isAuthenticated, logout } = useAuth()
 
   return (
     <header className="navbar">
-      <NavLink to="/" className="brand">
-        <FaOm size={24} />
-        <span>DarshanHome</span>
-      </NavLink>
-
-      <nav className="nav-links">
-        <NavLink to="/">Home</NavLink>
-        <NavLink to="/temples">Temples</NavLink>
-        <NavLink to="/bookings">My Bookings</NavLink>
-        <NavLink to="/about">About</NavLink>
-        <NavLink to="/contact">Contact</NavLink>
-      </nav>
-
-      <div className="nav-actions">
-        {isAuthenticated ? (
-          <>
-            <span style={{ color: '#1f2937', fontWeight: 700 }}>
-              Hello, {user.name}
-            </span>
-            <button className="btn btn-light" type="button" onClick={handleLogout}>
-              Logout
+      <div className="navbar-inner">
+        <NavLink to="/" className="brand">
+          <span className="brand-icon"><FaFilm /></span>
+          <span>BookMyTickets</span>
+        </NavLink>
+        <nav className="nav-links" aria-label="Main navigation">
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/movies">Movies</NavLink>
+          <NavLink to="/theaters">Theaters</NavLink>
+          <NavLink to="/bookings">My tickets</NavLink>
+        </nav>
+        <div className="nav-actions">
+          {isAuthenticated ? (
+            <button className="btn btn-secondary" type="button" onClick={() => { logout(); navigate('/') }}>
+              Log out
             </button>
-          </>
-        ) : (
-          <>
-            <NavLink to="/login" className="btn btn-light">Login</NavLink>
-            <NavLink to="/register" className="btn btn-dark">
-              <FaUserCircle /> Register
-            </NavLink>
-          </>
-        )}
+          ) : (
+            <>
+              <button className="btn btn-secondary" type="button" onClick={() => navigate('/login')}>
+                Log in
+              </button>
+              <button className="btn btn-secondary" type="button" onClick={() => navigate('/register')}>
+                Create account
+              </button>
+            </>
+          )}
+          <button className="btn btn-primary" type="button" onClick={() => navigate('/movies')}>
+            <FaTicketAlt /> Book tickets
+          </button>
+        </div>
       </div>
     </header>
   )

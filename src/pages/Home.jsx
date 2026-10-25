@@ -1,71 +1,71 @@
-import Hero from '../components/Hero'
-import FeatureCard from '../components/FeatureCard'
-import SearchBar from '../components/SearchBar'
-import TempleCard from '../components/TempleCard'
-import { FaStar, FaBolt, FaShieldAlt, FaCalendarCheck } from 'react-icons/fa'
-
-const temples = [
-  { name: 'Tirumala Temple', location: 'Andhra Pradesh', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=900&q=80', tag: 'Popular' },
-  { name: 'Shirdi Sai Baba', location: 'Maharashtra', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80', tag: 'Trending' },
-  { name: 'Meenakshi Temple', location: 'Tamil Nadu', image: 'https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?auto=format&fit=crop&w=900&q=80', tag: 'Heritage' },
-  { name: 'Vaishno Devi', location: 'Jammu & Kashmir', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80', tag: 'Pilgrimage' },
-  { name: 'Golden Temple', location: 'Punjab', image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=900&q=80', tag: 'Sacred' },
-]
-
-const features = [
-  { icon: <FaStar />, title: 'Trusted Booking', text: 'Secure and verified temple reservations.' },
-  { icon: <FaBolt />, title: 'Instant Confirmation', text: 'Get your slot confirmation in seconds.' },
-  { icon: <FaShieldAlt />, title: 'Safe & Secure', text: 'Protected payments and account safety.' },
-  { icon: <FaCalendarCheck />, title: 'Flexible Slots', text: 'Choose the darshan time that suits you.' },
-]
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { FaArrowRight, FaBolt, FaFilm, FaSearch, FaTicketAlt } from 'react-icons/fa'
+import MovieCard from '../components/MovieCard.jsx'
+import { movies } from '../data/movies.js'
 
 const Home = () => {
-  const now = new Date()
-  const dateLabel = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  const googleDatesUrl = `https://www.google.com/search?q=darshan+tickets+${encodeURIComponent(dateLabel)}&tbm=`
+  const [search, setSearch] = useState('')
+  const navigate = useNavigate()
+
+  const handleSearch = (event) => {
+    event.preventDefault()
+    navigate(`/movies${search.trim() ? `?q=${encodeURIComponent(search.trim())}` : ''}`)
+  }
 
   return (
     <main>
-      <Hero />
-      <section className="section">
-        <div className="section-heading">
-          <p className="eyebrow">Plan your visit</p>
-          <h2>Browse temples and choose your ideal slot</h2>
-        </div>
-        <SearchBar />
-        <div style={{ marginTop: 18 }}>
-          <a
-            href={googleDatesUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-light"
-          >
-            Flexible Dates on Google ({dateLabel})
-          </a>
+      <section className="home-hero content-width">
+        <div className="hero-copy">
+          <p className="eyebrow">Movie nights, made easy</p>
+          <h1>Big screen.<br />Best seats.<br />Your night.</h1>
+          <p className="hero-text">Find a movie you love, pick your seats, and make tonight a cinema night.</p>
+          <div className="hero-actions">
+            <Link to="/movies" className="btn btn-primary">Explore movies <FaArrowRight /></Link>
+            <Link to="/bookings" className="btn btn-secondary"><FaTicketAlt /> My tickets</Link>
+          </div>
+          <p className="hero-note"><strong>All the latest stories</strong> · Search movies and browse showtimes</p>
         </div>
       </section>
 
-      <section className="section">
+      <section className="content-width section">
+        <form className="search-field" onSubmit={handleSearch} role="search">
+          <FaSearch aria-hidden="true" />
+          <input
+            aria-label="Search movies"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by movie, genre or language"
+          />
+          <button className="btn btn-primary" type="submit">Search</button>
+        </form>
+      </section>
+
+      <section className="content-width section">
         <div className="section-heading">
-          <p className="eyebrow">Why choose us</p>
-          <h2>Everything you need for a smooth darshan</h2>
+          <div>
+            <p className="eyebrow">Indian cinema · 2026 releases</p>
+            <h2>Stories from across India</h2>
+          </div>
+          <Link className="text-link" to="/movies">See all movies <FaArrowRight /></Link>
         </div>
-        <div className="features-grid">
-          {features.map((feature) => (
-            <FeatureCard key={feature.title} {...feature} />
-          ))}
+        <div className="movie-grid">
+          {movies.slice(0, 4).map((movie) => <MovieCard key={movie.id} movie={movie} />)}
         </div>
       </section>
 
-      <section className="section">
-        <div className="section-heading">
-          <p className="eyebrow">Popular temples</p>
-          <h2>Explore sacred destinations near you</h2>
+      <section className="content-width feature-strip" aria-label="Booking benefits">
+        <div className="feature-item">
+          <span className="feature-icon"><FaFilm /></span>
+          <div><strong>Find your film</strong><span>Browse a hand-picked movie lineup</span></div>
         </div>
-        <div className="temples-grid">
-          {temples.map((temple) => (
-            <TempleCard key={temple.name} {...temple} />
-          ))}
+        <div className="feature-item">
+          <span className="feature-icon"><FaTicketAlt /></span>
+          <div><strong>Choose your seats</strong><span>Pick the perfect spot in the theatre</span></div>
+        </div>
+        <div className="feature-item">
+          <span className="feature-icon"><FaBolt /></span>
+          <div><strong>Keep your tickets close</strong><span>Your demo tickets are saved to your account</span></div>
         </div>
       </section>
     </main>
